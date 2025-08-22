@@ -24,11 +24,16 @@ import com.example.firebase.ui.theme.detailsColor
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 
+// Tela de cadastro (RegisterPage)
+// Recebe duas funções como parâmetro:
+// - onRegisterComplete: chamada quando o cadastro é concluído com sucesso
+// - onLoginClick: chamada quando o usuário decide ir para a tela de login
 @Composable
 fun RegisterPage(
     onRegisterComplete: () -> Unit,
     onLoginClick: () -> Unit
 ) {
+    // Estados para armazenar os valores digitados pelo usuário
     var nome by remember { mutableStateOf("") }
     var apelido by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -36,26 +41,29 @@ fun RegisterPage(
     var telefone by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
+    // Referência ao Firestore
     val db = Firebase.firestore
 
+    // Layout principal
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundColor)
     ) {
-        // Conteúdo principal com scroll
+        // Conteúdo principal com rolagem
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 60.dp) // espaço para o rodapé
+                .padding(bottom = 60.dp) // Espaço para não sobrepor o rodapé
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // Card central que contém o formulário de cadastro
             Card(
                 modifier = Modifier
                     .padding(16.dp)
-                    .fillMaxWidth(0.9f),
+                    .fillMaxWidth(0.9f), // Ocupa 90% da largura
                 colors = CardDefaults.cardColors(
                     containerColor = backgroundColor
                 ),
@@ -66,6 +74,7 @@ fun RegisterPage(
                         .padding(horizontal = 24.dp, vertical = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
+                    // Ícone de cadastro
                     Image(
                         painter = painterResource(id = R.drawable.register_icon),
                         contentDescription = "Logo",
@@ -74,12 +83,15 @@ fun RegisterPage(
                             .padding(bottom = 5.dp)
                     )
 
+                    // Título
                     Text(
                         "Cadastre-se",
                         fontFamily = FontFamily.Serif,
                         fontSize = 26.sp,
                         color = primaryColor,
                     )
+
+                    // Texto auxiliar
                     Text(
                         "Role para baixo...",
                         fontFamily = FontFamily.Serif,
@@ -88,6 +100,7 @@ fun RegisterPage(
                         modifier = Modifier.padding(vertical = 15.dp)
                     )
 
+                    // Mensagem de erro (se houver)
                     if (errorMessage.isNotEmpty()) {
                         Text(
                             text = errorMessage,
@@ -96,6 +109,7 @@ fun RegisterPage(
                         )
                     }
 
+                    // Campos de texto (usando componente customizado)
                     CustomDarkTextField(
                         value = nome,
                         onValueChange = { nome = it },
@@ -130,7 +144,7 @@ fun RegisterPage(
                         backgroundColor = cardBackground,
                         textColor = textColor,
                         labelColor = labelColor,
-                        isPassword = true
+                        isPassword = true // Campo de senha
                     )
 
                     CustomDarkTextField(
@@ -144,13 +158,16 @@ fun RegisterPage(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
+                    // Botão de cadastrar
                     Button(
                         onClick = {
+                            // Validação: campos obrigatórios não podem estar vazios
                             if (nome.isBlank() || apelido.isBlank() || email.isBlank() || senha.isBlank()) {
                                 errorMessage = "Preencha todos os campos obrigatórios"
                                 return@Button
                             }
 
+                            // Cria o objeto usuário para enviar ao Firestore
                             val usuario = hashMapOf(
                                 "nome" to nome,
                                 "apelido" to apelido,
@@ -159,11 +176,12 @@ fun RegisterPage(
                                 "telefone" to telefone
                             )
 
+                            // Adiciona o usuário no Firestore
                             db.collection("banco")
                                 .add(usuario)
                                 .addOnSuccessListener {
                                     Log.d("Firestore", "Documento adicionado com ID: ${it.id}")
-                                    onRegisterComplete()
+                                    onRegisterComplete() // Navega para próxima tela
                                 }
                                 .addOnFailureListener { e ->
                                     errorMessage = "Erro ao cadastrar: ${e.message}"
@@ -184,6 +202,7 @@ fun RegisterPage(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Botão para ir à tela de login
                     Button(
                         onClick = onLoginClick,
                         modifier = Modifier
@@ -202,7 +221,7 @@ fun RegisterPage(
             }
         }
 
-        // Rodapé fixo
+        // Rodapé fixo no fim da tela
         Box(
             modifier = Modifier
                 .fillMaxWidth()
