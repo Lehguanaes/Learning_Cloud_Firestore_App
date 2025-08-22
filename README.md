@@ -1,4 +1,4 @@
-<p align="center"><img width="400" alt="Logo" src="https://github.com/user-attachments/assets/e4a7be88-f369-4818-856a-7428af5f24e1" /></p>
+<p align="center"><img width="400" alt="Logo" src="https://github.com/user-attachments/assets/d1dc0357-a7fc-42f1-9241-a57d0d4f9793" /></p>
 
 # [![Typing SVG](https://readme-typing-svg.herokuapp.com/?color=fdd618&size=35&center=true&vCenter=true&width=1000&lines=Aprendendo+a+utilizar+Cloud+Firestore!;Utilizando+firebase+e+Kotlin!)](https://git.io/typing-svg)
 
@@ -75,21 +75,21 @@ O Android Studio fará as alterações necessárias nos arquivos build.gradle do
 ## 📲 Imagens do Projeto
 
 ## ​📌​ Ícone
-<img width="250" alt="App" src="https://github.com/user-attachments/assets/7b187a13-dabb-48a0-9add-debe0d89686b" /></p>
-<img width="250" alt="App" src="https://github.com/user-attachments/assets/47034830-43d1-45a5-9626-c9c6584c4fb7" /></p>
+<img width="250" alt="App" src="https://github.com/user-attachments/assets/eabd8f16-7c20-4038-b9da-bb6896942126" /></p>
+<img width="250" alt="App" src="https://github.com/user-attachments/assets/bf916443-a6f0-4b1b-bbff-152a3f0b15de" /></p>
 
 ## ​📌​ Login Page
-<img width="250" alt="App" src="https://github.com/user-attachments/assets/686e354f-618d-4f0d-be81-8253dfae1382" /></p>
-<img width="250" alt="App" src="https://github.com/user-attachments/assets/26b62c5a-a5c9-4723-ba49-43b6080372c5" /></p>
+<img width="250" alt="App" src="https://github.com/user-attachments/assets/60df85cd-0844-495c-9365-eddd1c057f5b" /></p>
+<img width="250" alt="App" src="https://github.com/user-attachments/assets/1bce8894-1e98-4edd-8401-ae693cb80268" /></p>
 
 ## ​📌​ Registro Page
-<img width="250" alt="App" src="https://github.com/user-attachments/assets/5c594f6d-5dae-433f-ba46-fb9f2727e5ce" /></p>
-<img width="250" alt="App" src="https://github.com/user-attachments/assets/268b1fa1-9a12-4ec4-ab23-aaa42d57829f" /></p>
+<img width="250" alt="App" src="https://github.com/user-attachments/assets/dbf967d0-546f-4a91-b50b-48426291a2f5" /></p>
+<img width="250" alt="App" src="https://github.com/user-attachments/assets/49f0fded-d63b-414f-a43f-74105d8ef743" /></p>
 
 ## ​📌​ Home Page
-<img width="250" alt="App" src="https://github.com/user-attachments/assets/c3eaa4be-58d2-4901-b3e5-359197a8d1d8" /></p>
-<img width="250" alt="App" src="https://github.com/user-attachments/assets/91d68f28-a0fc-4d29-94b0-bb4d4725f983" /></p>
-<img width="250" alt="App" src="https://github.com/user-attachments/assets/c66f2e65-af91-4b6a-b5a9-8e48fe0901b0" /></p>
+<img width="250" alt="App" src="https://github.com/user-attachments/assets/f533e401-838a-4e33-87d5-4b6517e95cc8" /></p>
+<img width="250" alt="App" src="https://github.com/user-attachments/assets/371eb149-83bd-484c-9308-54d01e4c75e4" /></p>
+<img width="250" alt="App" src="https://github.com/user-attachments/assets/4f479767-07c4-4d90-83da-6c43855aaca3" /></p>
 
 ## ​📌​ Banco de Dados
-<img width="650" alt="App" src="https://github.com/user-attachments/assets/03347216-b7cc-4bf9-a496-c556464596b8" /></p>
+<img width="650" alt="App" src="https://github.com/user-attachments/assets/305fcffc-c4be-42d8-b8db-6a40b82e6c59" /></p>
