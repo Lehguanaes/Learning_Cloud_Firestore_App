@@ -10,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
@@ -28,29 +27,36 @@ import com.example.firebase.R
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 
+// Esse código monta uma página inicial (HomePage) em Jetpack Compose, conectada ao Firestore, com menu, exibição de registros e rodapé fixo.
 @Composable
 fun HomePage(
-    userName: String = "Usuário",
-    onLogout: () -> Unit
+    userName: String = "Usuário",  // Nome do usuário (exibido na tela inicial)
+    onLogout: () -> Unit           // Callback chamado quando usuário encerra a sessão
 ) {
+    // Estado do menu suspenso
     var menuExpanded by remember { mutableStateOf(false) }
+    // Controle de exibição da lista de registros
     var mostrarRegistros by remember { mutableStateOf(false) }
+    // Referência ao banco de dados Firestore
     val db = Firebase.firestore
+    // Lista reativa onde ficam os documentos carregados do Firestore
     val banco = remember { mutableStateListOf<Map<String, Any>>() }
+    // Estado do scroll da tela
     val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(backgroundColor)
+            .background(backgroundColor) // Cor de fundo da tela
     ) {
-        // Topo com botão de menu
+        // ======= TOPO COM MENU ==========
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             contentAlignment = Alignment.CenterEnd
         ) {
+            // Botão que abre o menu
             IconButton(onClick = { menuExpanded = true }) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
@@ -59,11 +65,13 @@ fun HomePage(
                 )
             }
 
+            // Menu suspenso com duas opções
             DropdownMenu(
                 expanded = menuExpanded,
                 onDismissRequest = { menuExpanded = false },
-                offset = DpOffset(x = (-30).dp, y = -10.dp)
+                offset = DpOffset(x = (-30).dp, y = -10.dp) // Ajuste de posição
             ) {
+                // Opção 1: Consultar registros do Firestore
                 DropdownMenuItem(
                     text = { Text("Consultar Registros") },
                     onClick = {
@@ -71,11 +79,11 @@ fun HomePage(
                         db.collection("banco")
                             .get()
                             .addOnSuccessListener { result ->
-                                banco.clear()
+                                banco.clear() // limpa registros anteriores
                                 for (document in result) {
-                                    banco.add(document.data)
+                                    banco.add(document.data) // adiciona cada documento
                                 }
-                                mostrarRegistros = true
+                                mostrarRegistros = true // troca tela para "Cadastros"
                             }
                             .addOnFailureListener { exception ->
                                 Log.w("Firestore", "Erro ao buscar documentos.", exception)
@@ -89,11 +97,12 @@ fun HomePage(
                         )
                     }
                 )
+                // Opção 2: Encerrar navegação (logout)
                 DropdownMenuItem(
                     text = { Text("Encerrar Navegação") },
                     onClick = {
                         menuExpanded = false
-                        onLogout()
+                        onLogout() // chama função recebida por parâmetro
                     },
                     leadingIcon = {
                         Image(
@@ -106,13 +115,14 @@ fun HomePage(
             }
         }
 
-        // Logo centralizado com texto alinhado verticalmente
+        // ======= LOGO E TÍTULO ==========
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Troca o ícone conforme a tela
             Image(
                 painter = painterResource(
                     id = if (mostrarRegistros) R.drawable.bag_icon else R.drawable.home_icon
@@ -132,15 +142,16 @@ fun HomePage(
             }
         }
 
-        // Conteúdo principal rolável com peso 1 para ocupar espaço restante
+        // ======= CONTEÚDO PRINCIPAL ==========
         Column(
             modifier = Modifier
-                .weight(1f)
+                .weight(1f) // ocupa espaço entre topo e rodapé
                 .fillMaxWidth()
-                .verticalScroll(scrollState)
+                .verticalScroll(scrollState) // scroll ativado
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Caso 1: tela inicial de boas-vindas
             if (!mostrarRegistros) {
                 Text(
                     "Seja Bem-vindo, $userName!",
@@ -169,6 +180,7 @@ fun HomePage(
                 )
             }
 
+            // Caso 2: exibição dos registros buscados no Firestore
             if (mostrarRegistros) {
                 Column(
                     modifier = Modifier
@@ -184,6 +196,7 @@ fun HomePage(
                                 .background(cardBackground, shape = RoundedCornerShape(8.dp))
                                 .padding(12.dp)
                         ) {
+                            // Ícone do registro
                             Image(
                                 painter = painterResource(id = R.drawable.point_icon),
                                 contentDescription = "Registro Ícone",
@@ -192,6 +205,7 @@ fun HomePage(
                                     .padding(end = 12.dp)
                             )
 
+                            // Informações do registro
                             Column {
                                 Text("Cadastro ${index + 1}", color = primaryColor, fontSize = 18.sp)
                                 Text("Nome: ${registro["nome"]}", color = textColor)
@@ -205,7 +219,7 @@ fun HomePage(
             }
         }
 
-        // Rodapé fixo no final da tela
+        // ======= RODAPÉ FIXO ==========
         Box(
             modifier = Modifier
                 .fillMaxWidth()
