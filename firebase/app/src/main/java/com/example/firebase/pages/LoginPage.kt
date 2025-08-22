@@ -28,17 +28,20 @@ import com.example.firebase.ui.theme.detailsColor
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 
+// Esse LoginPage é uma tela de login customizada em Jetpack Compose integrada ao Firestore.
 @Composable
 fun LoginPage(
-    onLogin: (String) -> Unit,
-    onRegisterClick: () -> Unit
+    onLogin: (String) -> Unit,   // Callback ao logar com sucesso (passa apelido ou email)
+    onRegisterClick: () -> Unit  // Callback quando o usuário clica em "Cadastrar-se"
 ) {
+    // ======= ESTADOS ==========
     var email by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }
-    var mostrarSenha by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
-    val db = Firebase.firestore
+    var mostrarSenha by remember { mutableStateOf(false) } // controle de visibilidade da senha
+    var errorMessage by remember { mutableStateOf("") }    // mensagem de erro exibida na tela
+    val db = Firebase.firestore // referência ao Firestore
 
+    // ======= LAYOUT PRINCIPAL ==========
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -46,18 +49,18 @@ fun LoginPage(
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement.SpaceBetween, // separa conteúdo e rodapé
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // CONTEÚDO PRINCIPAL
+            // ---------- CONTEÚDO PRINCIPAL ----------
             Column(
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(1f) // ocupa espaço antes do rodapé
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp), // Apenas padding lateral aqui
+                    .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(16.dp)) // Espaço no topo
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Logo
                 Image(
@@ -68,6 +71,7 @@ fun LoginPage(
                         .padding(bottom = 16.dp)
                 )
 
+                // Título
                 Text(
                     "Conecte-se conosco",
                     fontFamily = FontFamily.Serif,
@@ -76,6 +80,7 @@ fun LoginPage(
                     modifier = Modifier.padding(vertical = 24.dp)
                 )
 
+                // Mensagem de erro
                 if (errorMessage.isNotEmpty()) {
                     Text(
                         text = errorMessage,
@@ -84,6 +89,7 @@ fun LoginPage(
                     )
                 }
 
+                // Campo de E-mail
                 CustomDarkTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -93,6 +99,7 @@ fun LoginPage(
                     labelColor = labelColor
                 )
 
+                // Campo de Senha (com ícone de mostrar/ocultar)
                 CustomDarkTextField(
                     value = senha,
                     onValueChange = { senha = it },
@@ -100,7 +107,7 @@ fun LoginPage(
                     backgroundColor = cardBackground,
                     textColor = textColor,
                     labelColor = labelColor,
-                    isPassword = !mostrarSenha,
+                    isPassword = !mostrarSenha, // se false → mostra senha
                     trailingIcon = {
                         IconButton(onClick = { mostrarSenha = !mostrarSenha }) {
                             Icon(
@@ -114,6 +121,7 @@ fun LoginPage(
                     }
                 )
 
+                // Mensagem de boas-vindas
                 Text(
                     "Seja bem-vindo!",
                     fontFamily = FontFamily.Serif,
@@ -124,21 +132,26 @@ fun LoginPage(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // Botão de Login
                 Button(
                     onClick = {
+                        // Validação inicial
                         if (email.isBlank() || senha.isBlank()) {
                             errorMessage = "Preencha todos os campos"
                             return@Button
                         }
 
+                        // Consulta ao Firestore para verificar credenciais
                         db.collection("banco")
                             .whereEqualTo("email", email)
                             .whereEqualTo("senha", senha)
                             .get()
                             .addOnSuccessListener { documents ->
                                 if (documents.isEmpty) {
+                                    // Nenhum usuário encontrado
                                     errorMessage = "Credenciais inválidas"
                                 } else {
+                                    // Login válido → pega o apelido ou email
                                     val nomeUsuario =
                                         documents.documents[0].getString("apelido") ?: email
                                     onLogin(nomeUsuario)
@@ -160,6 +173,7 @@ fun LoginPage(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // Botão para tela de cadastro
                 Button(
                     onClick = onRegisterClick,
                     modifier = Modifier.fillMaxWidth(),
@@ -173,10 +187,10 @@ fun LoginPage(
                     Text("Não tem conta? Cadastre-se", fontSize = 16.sp)
                 }
 
-                Spacer(modifier = Modifier.height(16.dp)) // Espaço antes do rodapé
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // RODAPÉ FIXO
+            // ---------- RODAPÉ ----------
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
