@@ -1,9 +1,13 @@
 package com.example.firebase.pages
 
 import android.util.Log
-import androidx.compose.foundation.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -11,29 +15,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.firebase.R
-import com.example.firebase.ui.theme.backgroundColor
-import com.example.firebase.ui.theme.primaryColor
-import com.example.firebase.ui.theme.textColor
-import com.example.firebase.ui.theme.cardBackground
-import com.example.firebase.ui.theme.labelColor
 import com.example.firebase.components.CustomDarkTextField
-import com.example.firebase.ui.theme.detailsColor
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
+import com.example.firebase.ui.theme.*
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
-// Tela de cadastro (RegisterPage)
-// Recebe duas funções como parâmetro:
-// - onRegisterComplete: chamada quando o cadastro é concluído com sucesso
-// - onLoginClick: chamada quando o usuário decide ir para a tela de login
 @Composable
 fun RegisterPage(
     onRegisterComplete: () -> Unit,
     onLoginClick: () -> Unit
 ) {
-    // Estados para armazenar os valores digitados pelo usuário
     var nome by remember { mutableStateOf("") }
     var apelido by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -41,32 +37,27 @@ fun RegisterPage(
     var telefone by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
-    // Referência ao Firestore
-    val db = Firebase.firestore
+    val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
 
-    // Layout principal
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundColor)
     ) {
-        // Conteúdo principal com rolagem
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 60.dp) // Espaço para não sobrepor o rodapé
+                .padding(bottom = 60.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Card central que contém o formulário de cadastro
             Card(
                 modifier = Modifier
                     .padding(16.dp)
-                    .fillMaxWidth(0.9f), // Ocupa 90% da largura
-                colors = CardDefaults.cardColors(
-                    containerColor = backgroundColor
-                ),
+                    .fillMaxWidth(0.9f),
+                colors = CardDefaults.cardColors(containerColor = backgroundColor),
             ) {
                 Column(
                     modifier = Modifier
@@ -74,7 +65,6 @@ fun RegisterPage(
                         .padding(horizontal = 24.dp, vertical = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    // Ícone de cadastro
                     Image(
                         painter = painterResource(id = R.drawable.register_icon),
                         contentDescription = "Logo",
@@ -83,15 +73,12 @@ fun RegisterPage(
                             .padding(bottom = 5.dp)
                     )
 
-                    // Título
                     Text(
                         "Cadastre-se",
                         fontFamily = FontFamily.Serif,
                         fontSize = 26.sp,
                         color = primaryColor,
                     )
-
-                    // Texto auxiliar
                     Text(
                         "Role para baixo...",
                         fontFamily = FontFamily.Serif,
@@ -100,7 +87,6 @@ fun RegisterPage(
                         modifier = Modifier.padding(vertical = 15.dp)
                     )
 
-                    // Mensagem de erro (se houver)
                     if (errorMessage.isNotEmpty()) {
                         Text(
                             text = errorMessage,
@@ -109,7 +95,6 @@ fun RegisterPage(
                         )
                     }
 
-                    // Campos de texto (usando componente customizado)
                     CustomDarkTextField(
                         value = nome,
                         onValueChange = { nome = it },
@@ -144,7 +129,7 @@ fun RegisterPage(
                         backgroundColor = cardBackground,
                         textColor = textColor,
                         labelColor = labelColor,
-                        isPassword = true // Campo de senha
+                        isPassword = true
                     )
 
                     CustomDarkTextField(
@@ -158,34 +143,39 @@ fun RegisterPage(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Botão de cadastrar
                     Button(
                         onClick = {
-                            // Validação: campos obrigatórios não podem estar vazios
                             if (nome.isBlank() || apelido.isBlank() || email.isBlank() || senha.isBlank()) {
                                 errorMessage = "Preencha todos os campos obrigatórios"
                                 return@Button
                             }
 
-                            // Cria o objeto usuário para enviar ao Firestore
-                            val usuario = hashMapOf(
-                                "nome" to nome,
-                                "apelido" to apelido,
-                                "email" to email,
-                                "senha" to senha,
-                                "telefone" to telefone
-                            )
+                            auth.createUserWithEmailAndPassword(email, senha)
+                                .addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        val userId = auth.currentUser?.uid ?: return@addOnCompleteListener
 
-                            // Adiciona o usuário no Firestore
-                            db.collection("banco")
-                                .add(usuario)
-                                .addOnSuccessListener {
-                                    Log.d("Firestore", "Documento adicionado com ID: ${it.id}")
-                                    onRegisterComplete() // Navega para próxima tela
-                                }
-                                .addOnFailureListener { e ->
-                                    errorMessage = "Erro ao cadastrar: ${e.message}"
-                                    Log.w("Firestore", "Erro ao adicionar documento", e)
+                                        val usuario = hashMapOf(
+                                            "uid" to userId,
+                                            "nome" to nome,
+                                            "apelido" to apelido,
+                                            "email" to email,
+                                            "telefone" to telefone
+                                        )
+
+                                        db.collection("banco")
+                                            .document(userId)
+                                            .set(usuario)
+                                            .addOnSuccessListener {
+                                                Log.d("Firestore", "Usuário cadastrado com sucesso")
+                                                onRegisterComplete()
+                                            }
+                                            .addOnFailureListener { e ->
+                                                errorMessage = "Erro ao salvar dados: ${e.message}"
+                                            }
+                                    } else {
+                                        errorMessage = "Erro: ${task.exception?.message}"
+                                    }
                                 }
                         },
                         modifier = Modifier
@@ -202,7 +192,6 @@ fun RegisterPage(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Botão para ir à tela de login
                     Button(
                         onClick = onLoginClick,
                         modifier = Modifier
@@ -221,7 +210,6 @@ fun RegisterPage(
             }
         }
 
-        // Rodapé fixo no fim da tela
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -238,15 +226,15 @@ fun RegisterPage(
                     text = "© 2025 | Letícia Guanaes Moreira",
                     color = Color.White,
                     fontSize = 14.sp,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
                 )
                 Text(
                     text = "Todos os direitos reservados.",
                     color = Color.White,
                     fontSize = 12.sp,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Normal,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    fontWeight = FontWeight.Normal,
+                    textAlign = TextAlign.Center
                 )
             }
         }
