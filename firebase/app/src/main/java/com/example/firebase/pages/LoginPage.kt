@@ -17,31 +17,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.firebase.ui.theme.backgroundColor
-import com.example.firebase.ui.theme.primaryColor
-import com.example.firebase.ui.theme.textColor
-import com.example.firebase.ui.theme.cardBackground
-import com.example.firebase.ui.theme.labelColor
 import com.example.firebase.R
 import com.example.firebase.components.CustomDarkTextField
-import com.example.firebase.ui.theme.detailsColor
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
+import com.example.firebase.ui.theme.*
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
-// Esse LoginPage é uma tela de login customizada em Jetpack Compose integrada ao Firestore.
 @Composable
 fun LoginPage(
-    onLogin: (String) -> Unit,   // Callback ao logar com sucesso (passa apelido ou email)
-    onRegisterClick: () -> Unit  // Callback quando o usuário clica em "Cadastrar-se"
+    onLogin: (String) -> Unit,
+    onRegisterClick: () -> Unit
 ) {
-    // ======= ESTADOS ==========
     var email by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }
-    var mostrarSenha by remember { mutableStateOf(false) } // controle de visibilidade da senha
-    var errorMessage by remember { mutableStateOf("") }    // mensagem de erro exibida na tela
-    val db = Firebase.firestore // referência ao Firestore
+    var mostrarSenha by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
-    // ======= LAYOUT PRINCIPAL ==========
+    val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -49,20 +43,18 @@ fun LoginPage(
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween, // separa conteúdo e rodapé
+            verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ---------- CONTEÚDO PRINCIPAL ----------
             Column(
                 modifier = Modifier
-                    .weight(1f) // ocupa espaço antes do rodapé
+                    .weight(1f)
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Logo
                 Image(
                     painter = painterResource(id = R.drawable.login_icon),
                     contentDescription = "Logo",
@@ -71,7 +63,6 @@ fun LoginPage(
                         .padding(bottom = 16.dp)
                 )
 
-                // Título
                 Text(
                     "Conecte-se conosco",
                     fontFamily = FontFamily.Serif,
@@ -80,7 +71,6 @@ fun LoginPage(
                     modifier = Modifier.padding(vertical = 24.dp)
                 )
 
-                // Mensagem de erro
                 if (errorMessage.isNotEmpty()) {
                     Text(
                         text = errorMessage,
@@ -89,7 +79,6 @@ fun LoginPage(
                     )
                 }
 
-                // Campo de E-mail
                 CustomDarkTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -99,7 +88,6 @@ fun LoginPage(
                     labelColor = labelColor
                 )
 
-                // Campo de Senha (com ícone de mostrar/ocultar)
                 CustomDarkTextField(
                     value = senha,
                     onValueChange = { senha = it },
@@ -107,7 +95,7 @@ fun LoginPage(
                     backgroundColor = cardBackground,
                     textColor = textColor,
                     labelColor = labelColor,
-                    isPassword = !mostrarSenha, // se false → mostra senha
+                    isPassword = !mostrarSenha,
                     trailingIcon = {
                         IconButton(onClick = { mostrarSenha = !mostrarSenha }) {
                             Icon(
@@ -121,7 +109,6 @@ fun LoginPage(
                     }
                 )
 
-                // Mensagem de boas-vindas
                 Text(
                     "Seja bem-vindo!",
                     fontFamily = FontFamily.Serif,
@@ -132,34 +119,36 @@ fun LoginPage(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Botão de Login
                 Button(
                     onClick = {
-                        // Validação inicial
                         if (email.isBlank() || senha.isBlank()) {
                             errorMessage = "Preencha todos os campos"
                             return@Button
                         }
 
-                        // Consulta ao Firestore para verificar credenciais
-                        db.collection("banco")
-                            .whereEqualTo("email", email)
-                            .whereEqualTo("senha", senha)
-                            .get()
-                            .addOnSuccessListener { documents ->
-                                if (documents.isEmpty) {
-                                    // Nenhum usuário encontrado
-                                    errorMessage = "Credenciais inválidas"
+                        auth.signInWithEmailAndPassword(email, senha)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    val userId = auth.currentUser?.uid ?: return@addOnCompleteListener
+
+                                    db.collection("banco")
+                                        .document(userId)
+                                        .get()
+                                        .addOnSuccessListener { document ->
+                                            if (document.exists()) {
+                                                val nomeUsuario = document.getString("apelido") ?: email
+                                                onLogin(nomeUsuario)
+                                            } else {
+                                                errorMessage = "Usuário não encontrado no banco"
+                                            }
+                                        }
+                                        .addOnFailureListener { e ->
+                                            errorMessage = "Erro Firestore: ${e.message}"
+                                            Log.w("Login", "Erro Firestore", e)
+                                        }
                                 } else {
-                                    // Login válido → pega o apelido ou email
-                                    val nomeUsuario =
-                                        documents.documents[0].getString("apelido") ?: email
-                                    onLogin(nomeUsuario)
+                                    errorMessage = "Erro de autenticação: ${task.exception?.message}"
                                 }
-                            }
-                            .addOnFailureListener { exception ->
-                                errorMessage = "Erro ao fazer login: ${exception.message}"
-                                Log.w("Login", "Erro ao verificar login", exception)
                             }
                     },
                     modifier = Modifier
@@ -173,7 +162,6 @@ fun LoginPage(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Botão para tela de cadastro
                 Button(
                     onClick = onRegisterClick,
                     modifier = Modifier.fillMaxWidth(),
@@ -190,7 +178,6 @@ fun LoginPage(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // ---------- RODAPÉ ----------
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
